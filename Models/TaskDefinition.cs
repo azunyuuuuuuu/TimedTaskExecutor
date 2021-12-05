@@ -2,9 +2,9 @@ namespace TimedTaskExecutor.Models;
 
 public record TaskDefinition
 {
-    public string Command { get; init; }
-    public string Parameter { get; init; }
-    public string Path { get; init; }
+    public string ExecutablePath { get; init; }
+    public string Arguments { get; init; }
+    public string WorkingDirectory { get; init; }
     public string Schedule { get; init; } = "* * * * *";
-    public DateTimeOffset LastRuntime { get; set; } = DateTimeOffset.MinValue;
+    public DateTimeOffset NextRuntime { get; set; } = DateTimeOffset.MinValue;
 }

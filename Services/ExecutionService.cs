@@ -1,3 +1,5 @@
+using CliWrap;
+using CliWrap.Buffered;
 using Cronos;
 using TimedTaskExecutor.Models;
 
@@ -28,13 +30,26 @@ public class ExecutionService : BackgroundService
         {
             foreach (var task in _tasks)
             {
-                var expression = CronExpression.Parse(task.Schedule);
-                var next = expression.GetNextOccurrence(task.LastRuntime, TimeZoneInfo.Local);
-
-                if (next < DateTimeOffset.Now)
+                if (task.NextRuntime < DateTimeOffset.Now)
                 {
                     _logger.LogTrace($"Executing Task {task}");
-                    task.LastRuntime = DateTimeOffset.Now;
+
+                    var expression = CronExpression.Parse(task.Schedule);
+                    task.NextRuntime = expression.GetNextOccurrence(DateTimeOffset.Now, TimeZoneInfo.Local) ?? DateTimeOffset.Now;
+
+                    try
+                    {
+                        var results = await Cli.Wrap(task.ExecutablePath)
+                            .WithArguments(task.Arguments)
+                            .WithWorkingDirectory(task.WorkingDirectory)
+                            .ExecuteBufferedAsync(stoppingToken);
+
+                        _logger.LogTrace($"Task completed successfully {task}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error during execution of {task}");
+                    }
                 }
             }
 
