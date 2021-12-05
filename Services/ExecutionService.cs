@@ -7,12 +7,14 @@ namespace TimedTaskExecutor.Services;
 
 public class ExecutionService : BackgroundService
 {
+    private readonly IHostApplicationLifetime _lifetime;
     private readonly ILogger<ExecutionService> _logger;
     private readonly IConfiguration _config;
-    private List<TaskDefinition> _tasks = new List<TaskDefinition>();
+    private List<TaskDefinition>? _tasks = new List<TaskDefinition>();
 
-    public ExecutionService(ILogger<ExecutionService> logger, IConfiguration config)
+    public ExecutionService(IHostApplicationLifetime lifetime, ILogger<ExecutionService> logger, IConfiguration config)
     {
+        _lifetime = lifetime;
         _logger = logger;
         _config = config;
 
@@ -21,7 +23,16 @@ public class ExecutionService : BackgroundService
 
     private void InitializeConfiguration()
     {
-        _tasks = _config.GetSection("Tasks").Get<List<TaskDefinition>>();
+        var _tasks = _config.GetSection("Tasks").Get<List<TaskDefinition>>();
+        if (_tasks == null || _tasks.Count == 0)
+        {
+            _logger.LogError("No tasks defined");
+            _lifetime.StopApplication();
+        }
+        else
+        {
+            _logger.LogInformation($"{_tasks.Count} tasks found");
+        }
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -30,7 +41,7 @@ public class ExecutionService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            foreach (var task in _tasks)
+            foreach (var task in _tasks ?? new List<TaskDefinition>())
             {
                 if (task.NextRuntime < DateTimeOffset.Now)
                 {
