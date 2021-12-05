@@ -26,6 +26,8 @@ public class ExecutionService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        await Task.Delay(3000, stoppingToken);
+
         while (!stoppingToken.IsCancellationRequested)
         {
             foreach (var task in _tasks)
