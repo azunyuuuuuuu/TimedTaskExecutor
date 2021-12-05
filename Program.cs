@@ -3,7 +3,10 @@ using TimedTaskExecutor.Services;
 
 string AppDataBasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), nameof(TimedTaskExecutor));
 
-IHost host = Host.CreateDefaultBuilder(args)
+IHost host = Host.CreateDefaultBuilder(args).ConfigureAppConfiguration((hostingContext, config) =>
+    {
+        config.AddJsonFile(Path.Combine(AppDataBasePath, "tasks.json"), optional: true);
+    })
     .ConfigureServices(services =>
     {
         services.AddLogging(builder =>
