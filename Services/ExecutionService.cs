@@ -1,10 +1,10 @@
-namespace TimedTaskExecutor;
+namespace TimedTaskExecutor.Services;
 
-public class Worker : BackgroundService
+public class ExecutionService : BackgroundService
 {
-    private readonly ILogger<Worker> _logger;
+    private readonly ILogger<ExecutionService> _logger;
 
-    public Worker(ILogger<Worker> logger)
+    public ExecutionService(ILogger<ExecutionService> logger)
     {
         _logger = logger;
     }
